@@ -34,7 +34,7 @@ namespace Kck1
                 "| T O U R N A M E N T |",
                 "╚---------------------╝"};
         static int GuaranteedPrize = 0;
-        static int Score = 0;
+        static int Score = -1;
         static void LoadQuestions(ref List<Question> Questions, string path)
         {
             try
@@ -61,81 +61,39 @@ namespace Kck1
         }
         static void Game()
         {
+            Console.Clear();
+            View.TournamentHeader(Tournament);
+            bool result = true;
+            char GuessedAnswer;
+            Question CurrentQuestion;
 
+            while (true)
+            {
+                View.PrintScoreboard(Score, ref GuaranteedPrize);
+                CurrentQuestion = PickRandomQuestion(ref Questions);
+                View.PrintQuestion(CurrentQuestion.Content);
+                GuessedAnswer = View.TournamentOptions(CurrentQuestion, Console.CursorTop);
+                result = GuessedAnswer == CurrentQuestion.CorrectAnswer ? true : false;
+                Score++;
+                if (Score == 12 || result == false)
+                    break;
+            }
+            if (result == false)
+                View.Lose(CurrentQuestion, GuessedAnswer, GuaranteedPrize);
+            if (Score == 12)
+            {
+                View.PrintScoreboard(Score, ref GuaranteedPrize);
+                View.Win();
+            }
         }
         static void Instructions()
         {
             Console.Clear();
             View.InstructionsHeader(InstructionsHeader);
-            SelectMode(Options(Console.CursorTop));
-        }
-        static int Options(int CursorTop)
-        {
-            CursorTop += 2;
-            int option = 0;
-            while (true)
-            {
-                switch (option)
-                {
-                    case 0:
-                        Console.SetCursorPosition(8, CursorTop);
-                        Console.BackgroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Start!");
-                        Console.SetCursorPosition(8 + 40, CursorTop);
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.WriteLine("Instruction");
-                        Console.SetCursorPosition(8 + 80, CursorTop);
-                        Console.WriteLine("Quit");
-                        break;
-
-                    case 1:
-                        Console.SetCursorPosition(8, CursorTop);
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.WriteLine("Start!");
-                        Console.SetCursorPosition(8 + 40, CursorTop);
-                        Console.BackgroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Instruction");
-                        Console.SetCursorPosition(8 + 80, CursorTop);
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.WriteLine("Quit");
-                        break;
-
-                    case 2:
-                        Console.SetCursorPosition(8, CursorTop);
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.WriteLine("Start!");
-                        Console.SetCursorPosition(8 + 40, CursorTop);
-                        Console.WriteLine("Instruction");
-                        Console.BackgroundColor = ConsoleColor.Red;
-                        Console.SetCursorPosition(8 + 80, CursorTop);
-                        Console.WriteLine("Quit");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        break;
-
-                    default:
-                        break;
-                }
-                var key = Console.ReadKey().Key;
-
-                if (key == ConsoleKey.RightArrow)
-                    option = ++option % 3;
-
-                if (key == ConsoleKey.LeftArrow)
-                {
-                    option--;
-                    if (option == -1)
-                        option = 2;
-                }
-                if (key == ConsoleKey.Enter)
-                {
-                    Console.SetCursorPosition(8, CursorTop);
-                    return option;
-                }
-            }
+            SelectMode(View.Options(Console.CursorTop));
         }
         static void SelectMode(int Option)
         {
-            Console.CursorVisible = false;
             switch (Option)
             {
                 case 0: // start
@@ -147,7 +105,6 @@ namespace Kck1
                     break;
 
                 case 2: // quit
-                    SelectMode(Options(Console.CursorTop));
                     Environment.Exit(0);
                     break;
 
@@ -157,10 +114,12 @@ namespace Kck1
         }
         static void Main(string[] args)
         {
-            Console.SetWindowSize(110, 30);
             LoadQuestions(ref Questions, "quiz.txt");
+
+            Console.SetWindowSize(110, 25);
+            Console.CursorVisible = false;
             View.MainMenuHeader(MilionerzyHeader);
-            SelectMode(Options(Console.CursorTop));
+            SelectMode(View.Options(Console.CursorTop));
         }
     }
 }
